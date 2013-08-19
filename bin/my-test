@@ -1,3 +1,145 @@
 #!/usr/bin/env ruby
 
-puts "it works!"
+require 'json'
+require 'open3'
+
+FILE_TO_APPEND = '/Users/admin/found.json'
+
+def run
+  @command, @file_path, @line_num, @col_num, @selected = ARGV[0], ARGV[1], Integer(ARGV[2]), Integer(ARGV[3]), ARGV.size > 4 ? ARGV[4] : ""
+  @file_name = @file_path.split("/")[-1]
+
+  res = case @file_path
+          when /.*\.java/ then process_java_file
+          when /.*\.sql/ then process_sql_file
+          else
+            log "Error", "Unknown format #{@file_name}"
+            nil
+        end
+  
+  log "Done!", res if res
+end
+
+def process_sql_file
+  open(@file_path).each_line.with_index do |line, idx|
+    if m = /CREATE OR REPLACE FUNCTION\s+(?<name>[\w\d]+)\s*\(/.match(line)
+      @sql_fn = m[:name]
+    end
+    
+    if idx == @line_num - 1
+      @sql_line = line
+      break
+    end
+  end
+
+  @sql_db = @file_path.split("/").drop_while{|part| part != 'database'}[1]
+  
+  row = write(
+      type: 'sql',
+      sub_type: @sql_fn ? 'sproc' : 'other',
+      id: @sql_fn || @file_name,
+      unit_name: @file_name,
+      id_under_cursor: under_cursor(@sql_line),
+      package: @sql_db,
+      format: method(:format_sql).to_proc
+  )
+
+  "#{row[:type]} #{row[:sub_type]}: #{row[:id]}"
+end
+
+def process_java_file
+  open(@file_path).each_line.with_index do |line, idx|
+    if m = /public\s+(?<mod>class|interface)\s+(?<name>[\w\d]+)/.match(line)
+      @java_type = m[:mod]
+      @java_class_name = m[:name]
+    end
+
+    if m = /public\s+[\w\d]*?\s*(?<name>[\w\d]+)\(/.match(line)
+      @java_last_method = m[:name]
+    end
+
+    if m = /package\s+(?<path>.*);/.match(line)
+      @java_package = m[:path]
+    end
+    
+    if idx == @line_num - 1
+      @java_line = line
+      break
+    end
+  end
+  
+  @java_id = if m = /private.*\s+(?<name>[\w\d]+?);/.match(@java_line)
+               m[:name]
+             end
+  
+  row = write(
+      type: 'java',
+      sub_type: @java_id ? 'field' : 'method',  
+      id: @java_id || @java_last_method,
+      unit_name: @java_class_name,
+      id_under_cursor: under_cursor(@java_line),
+      package: @java_package,
+      format: method(:format_java).to_proc 
+  )
+  
+  "#{row[:type]} #{row[:sub_type]}: #{row[:id]}"
+end
+
+def format_java opts
+  member = "#{opts[:sub_type][0].upcase}#{opts[:sub_type][1..-1]}: #{opts[:id]}"
+  "#{opts[:package]}.#{opts[:unit_name]} (#{opts[:line]}:#{opts[:col]})\n#{member}"
+end
+
+def format_sql opts
+  "TODO"
+end
+
+def under_cursor(line)
+  start = ""
+
+  if m = /.*\b(?<start>[\w\d]+)$/.match(line[0 ... @col_num])
+    start = m[:start]
+  end
+
+  endTerm = ""
+  
+  if m = /^(?<e>[\w\d]+)\b.*/.match(line[@col_num .. -1])
+    endTerm = m[:e]
+  end
+  
+  start + endTerm
+end
+
+def write opts
+  all_opts = opts.merge file_path: @file_path, file_name: @file_name, line: @line_num, col: @col_num, sel: (@selected and @selected != '' ? @selected : nil)
+  
+  case @command
+    when 'write' then write_to_file all_opts 
+    when 'copy' then write_clipboard all_opts 
+  end
+  
+  all_opts
+end
+
+def write_clipboard opts
+  Open3.pipeline_w("pbcopy") {|i, ts|
+    i.puts opts[:format][opts]
+  }
+end                                                   
+
+def write_to_file opts
+  open(FILE_TO_APPEND, "a") do |f|
+    f.puts JSON.dump(opts)
+  end
+  
+  puts "Added:", JSON.pretty_generate(opts)
+end
+
+def log(title, message)
+  puts("%20s" % title + ": #{message}")
+  `growlnotify -a "Intellij Idea 12" -t "#{title}" -m "#{message}"`
+end
+
+run
+
+  
