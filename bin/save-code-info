@@ -6,7 +6,7 @@ require 'gli'
 
 include GLI::App
 
-program_desc "Adds code information to the json file"
+program_desc "Adds1 code information to the json file"
 
 flag [:c, :col], desc: "Column in the file", type: Integer
 flag [:l, :line], desc: "Line in the file", type: Integer
