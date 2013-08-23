@@ -1,7 +1,11 @@
 desc "Builds and installs gem locally"
 task install_gem: [:build, :do_install]
 
-task :build do
+task :create_dirs do
+  `mkdir pkg` unless File.directory? "pkg"
+end
+
+task build: [:create_dirs] do
   `rm -f pkg/*`
   execute "gem build #{`ls *.gemspec`}"
   `mv *.gem pkg`
