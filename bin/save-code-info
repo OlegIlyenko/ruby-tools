@@ -6,6 +6,7 @@ require 'gli'
 require 'file_analysis'
 
 include GLI::App
+include FileAnalysis
 
 program_desc "Adds code information to the json file"
 
@@ -18,9 +19,9 @@ pre do |opts|
   required_opts opts, :col, :line
 
   @analyzer = case opts[:file]
-                when /.*\.java/ then FileAnalysis::JavaAnalyzer.new opts
-                when /.*\.sql/ then FileAnalysis::SqlAnalyzer.new opts
-                else FileAnalysis::AnyAnalyzer.new opts
+                when /.*\.java/ then JavaAnalyzer.new opts
+                when /.*\.sql/ then SqlAnalyzer.new opts
+                else AnyAnalyzer.new opts
               end
 end
 
