@@ -19,20 +19,24 @@ pre do |opts|
   @analyzer = case opts[:file]
                 when /.*\.java/ then JavaAnalyzer.new opts
                 when /.*\.sql/ then SqlAnalyzer.new opts
-                else
-                  log "Error", "Unknown format #{opts[:file]}"
-                  exit 1
+                else AnyAnalyzer.new opts
               end
 end
 
 desc "Copy result in human-readable to the clipboard. No file is written."
 command :copy do |c|
   c.action do
-    Open3.pipeline_w("pbcopy") {|i|
-      i.puts @analyzer.format
-    }
+    fmt = @analyzer.format
     
-    log "Copied to clipboard!", @analyzer.analyze[1]
+    if fmt
+      Open3.pipeline_w("pbcopy") {|i|
+        i.puts fmt
+      }
+    
+      log "Copied to clipboard!", @analyzer.analyze[1]
+    else
+      log "NOT Copied!", "Copy not supported!"
+    end
   end
 end
 
@@ -61,7 +65,7 @@ module SourceAnalyzer
   end
   
   def all_opts opts
-    opts.merge file_path: @file_path, file_name: @file_name, line: @line_num, col: @col_num, sel: (@selected and @selected != '' ? @selected : nil)
+    opts.merge file_path: @file_path, file_name: @file_name, line: @line_num, col: @col_num, sel: (@selected and @selected != '' ? @selected : nil), time: Time.now
   end
   
   def under_cursor(line, col_num)
@@ -78,6 +82,38 @@ module SourceAnalyzer
     end
 
     start + endTerm
+  end
+end
+
+class AnyAnalyzer
+  include SourceAnalyzer
+
+  def initialize opts
+    init_info opts
+
+    open(@file_path).each_line.with_index do |line, idx|
+      if idx == @line_num - 1
+        @curr_line = line
+        break
+      end
+    end
+    
+    @opts = all_opts(
+        type: 'unknown',
+        sub_type: 'line',
+        id: @curr_line,
+        unit_name: nil,
+        id_under_cursor: under_cursor(@curr_line, @col_num),
+        package: nil
+    )
+  end
+
+  def analyze
+    [@opts, "#{@opts[:type]} #{@opts[:sub_type]}: #{@opts[:id]}"]
+  end
+
+  def format
+    nil
   end
 end
 
@@ -168,7 +204,7 @@ class SqlAnalyzer
   end
 
   def format
-    "TODO"
+    nil
   end
 end
 
