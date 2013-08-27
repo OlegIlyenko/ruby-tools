@@ -1,0 +1,33 @@
+doctype html
+
+html ng-app=""
+  head
+    title #{yield_content :title}
+
+    - ['assets/js/main.js', 'js/jquery-2.0.3.js', 'js/angular.js', 'js/bootstrap.js'].each do |js|
+      script type="text/javascript" src=js
+
+    == yield_content :head
+
+    - ['css/bootstrap.css', 'css/bootstrap-theme.css', 'assets/css/main.css'].each do |css|
+      link rel="stylesheet" type="text/css" href=css
+  body
+    header.navbar.navbar-default.navbar-fixed-top role="banner"
+      .container
+        .navbar-header
+          a.navbar-brand href="/"
+            == yield_content :title
+            - if yield_content(:description)
+              |&nbsp;
+              span.title-description
+                |(&nbsp;#{{yield_content :description}})
+        nav.collapse.navbar-collapse.bs-navbar-collapse role="navigation"
+          ul.nav.navbar-nav
+            == yield_content :menu
+    .container.main-body
+      - if yield_content(:header)
+        h2 #{yield_content :header}
+
+      == yield
+
+

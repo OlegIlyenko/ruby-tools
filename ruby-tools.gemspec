@@ -14,7 +14,17 @@ Gem::Specification.new do |s|
   s.require_paths = %w{lib}
 
   s.add_dependency "gli"
-  
+  s.add_dependency "slim"
+  s.add_dependency "less"
+  s.add_dependency "coffee-script"
+  s.add_dependency "redcarpet"
+  s.add_dependency "redcarpet"
+  s.add_dependency "sinatra"
+  s.add_dependency "sinatra-contrib"
+  s.add_dependency "sinatra-websocket"
+  s.add_dependency "launchy"
+  s.add_dependency "trollop"
+
   s.has_rdoc    = false
 end
 

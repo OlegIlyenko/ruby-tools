@@ -31,10 +31,8 @@ command :copy do |c|
     fmt = @analyzer.format
     
     if fmt
-      Open3.pipeline_w("pbcopy") {|i|
-        i.puts fmt
-      }
-    
+      Open3.pipeline_w("pbcopy") {|i| i.puts fmt}
+
       log "Copied to clipboard!", @analyzer.analyze[1]
     else
       log "NOT Copied!", "Copy not supported!"

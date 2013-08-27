@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+
+require 'sinatra'
+#require 'sinatra/sugar'
+require 'slim'
+require 'server_support'
+
+use Server.assets(self)
+
+#puts run_option_parser.on("-n", "--no-browser") { puts "yes, -i is a nice option" }
+
+#register Sinatra::Sugar
+json_file = ARGV[0]
+
+get '/' do
+  slim :show_json, :locals => {json_file: json_file}
+end
+
+Server.open_browser(self, true)

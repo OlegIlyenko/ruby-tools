@@ -1,0 +1,14 @@
+- content_for :title do
+  |Show JSON
+
+- content_for :description do
+  markdown:
+    Shows contents of the `#{json_file}`
+
+- content_for :header do
+  |Cool table
+
+ul
+  li fooo
+  - [1, 2, 3].each do |i|
+    li #{i}
