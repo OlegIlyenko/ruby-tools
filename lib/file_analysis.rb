@@ -121,7 +121,7 @@ module FileAnalysis
       init_info opts
 
       open(@file_path).each_line.with_index do |line, idx|
-        if m = /CREATE OR REPLACE FUNCTION\s+(?<name>[\w\d]+)\s*\(/.match(line)
+        if m = /CREATE OR REPLACE FUNCTION\s+(?<name>[\w\d]+)\s*\(/i.match(line)
           @sql_fn = m[:name]
         end
 

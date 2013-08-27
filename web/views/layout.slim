@@ -17,6 +17,7 @@ html ng-app=""
         .navbar-header
           a.navbar-brand href="/"
             == yield_content :title
+            
             - if yield_content(:description)
               |&nbsp;
               span.title-description
