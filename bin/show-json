@@ -1,19 +1,26 @@
 #!/usr/bin/env ruby
 
-require 'sinatra'
-#require 'sinatra/sugar'
-require 'slim'
+require 'sinatra_script'
 require 'server_support'
+require 'slim'
+  
+Server.reload(self)
 
-use Server.assets(self)
+use Server::Assets
 
-#puts run_option_parser.on("-n", "--no-browser") { puts "yes, -i is a nice option" }
+set :description, "Show JSON file in the browser"
 
-#register Sinatra::Sugar
-json_file = ARGV[0]
-
-get '/' do
-  slim :show_json, :locals => {json_file: json_file}
+options do |op|
+  op.on('-f', '--fields field1,field2', "Fields to show") {|val| set :fields, val.split(",")}
 end
 
-Server.open_browser(self, true)
+remaining_options do |opts|
+  set :file_name, opts[0]
+end
+
+get '/' do
+  p "Fields to show: ", settings[:fields]
+  
+  slim :show_json, :locals => {json_file: settings.file_name}
+end
+

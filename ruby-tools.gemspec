@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.add_dependency "less"
   s.add_dependency "coffee-script"
   s.add_dependency "redcarpet"
-  s.add_dependency "redcarpet"
+  s.add_dependency "therubyracer"
   s.add_dependency "sinatra"
   s.add_dependency "sinatra-contrib"
   s.add_dependency "sinatra-websocket"
