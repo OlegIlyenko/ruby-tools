@@ -1,6 +1,8 @@
 require 'sinatra/base'
 require 'launchy'
 require 'rack'
+require 'coffee_script'
+require 'less'
 
 module Server
   Assets = Sinatra.new do
@@ -28,6 +30,17 @@ module Server
   def self.open_browser ctx, no_browser
     unless no_browser
       ctx.instance_exec {Launchy.open("http://localhost:#{settings.port}")}
+    end
+  end
+
+  def self.thread
+    Thread.new do
+      begin
+        yield
+      rescue Exception => e
+        $stderr.puts "Error: " + e.message
+        $stderr.puts e.backtrace.join("\n")
+      end
     end
   end
 end

@@ -4,7 +4,7 @@ html ng-app=""
   head
     title #{yield_content :title}
 
-    - ['assets/js/main.js', 'js/jquery-2.0.3.js', 'js/angular.js', 'js/bootstrap.js'].each do |js|
+    - ['assets/js/main.js', 'assets/js/util.js', 'js/jquery-2.0.3.js', 'js/angular.js', 'js/bootstrap.js'].each do |js|
       script type="text/javascript" src=js
 
     == yield_content :head

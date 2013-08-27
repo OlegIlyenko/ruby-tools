@@ -15,6 +15,7 @@ module Sinatra
     set :public_folder, Proc.new { File.join(root, "../web/public") }
     set :opts, nil
     set :description, nil
+    set :suffix, nil
     set :remaining_opts, nil
   end
   
@@ -24,7 +25,9 @@ module Sinatra
         require 'optparse'
         
         rest = OptionParser.new { |op|
-          op.banner = "#{description? ? description + "\n\n" : ''}Usage: #{Pathname.new($0).basename} [options] some-file.json\n\nOptions:"
+          op.banner = "#{description? ? description + "\n\n" : ''}" +
+              "Usage: #{Pathname.new($0).basename} [options] #{suffix? ? suffix + "\n\n" : ''}\n\n" +
+              "Options:"
           
           op.on('-p', '--port port',   'set the port (default is 4567)')                { |val| set :port, Integer(val) }
           op.on('-o', '--ohost addr',   "set the host (default is #{bind})")             { |val| set :bind, val }

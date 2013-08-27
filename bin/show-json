@@ -3,24 +3,76 @@
 require 'sinatra_script'
 require 'server_support'
 require 'slim'
-  
+require 'sinatra-websocket'
+require 'filewatch/watch'
+require 'json'
+
 Server.reload(self)
 
 use Server::Assets
 
 set :description, "Show JSON file in the browser"
+set :suffix, "some.json"
+
+set :fields, nil
+set :file_name, nil
+set :clients, []
 
 options do |op|
   op.on('-f', '--fields field1,field2', "Fields to show") {|val| set :fields, val.split(",")}
 end
 
 remaining_options do |opts|
-  set :file_name, opts[0]
+  file_name = opts[0].sub /~/, Dir.home
+  set :file_name, file_name
+  setup_watch file_name
 end
 
 get '/' do
-  p "Fields to show: ", settings[:fields]
-  
+  p "Fields to show: ", settings.fields?
   slim :show_json, :locals => {json_file: settings.file_name}
 end
 
+get '/contents' do
+  unless request.websocket?
+    [400, "Websocket request expected!"]
+  else
+    request.websocket do |ws|
+      ws.onopen do
+        settings.clients << ws
+        ws.send read_json(settings.file_name)
+      end
+      ws.onclose {settings.clients.delete ws}
+    end
+  end
+end
+
+def setup_watch name
+  Server.thread do
+    watch = FileWatch::Watch.new
+    watch.watch name
+
+    watch.subscribe 1, 1 do |type, file|
+      if type == :modify or type == :create
+        unless settings.clients.empty?
+          json = read_json file
+          settings.clients.each{|c| c.send json}
+        end
+      end
+    end
+  end
+end
+
+def read_json file
+  json = File.new(file).map {|line| JSON.load line}
+
+  if settings.fields?
+    json = json.map do |obj|
+      new_hash = {}
+      obj.each {|k, v| new_hash[k] = v if settings.fields.include? k}
+      new_hash
+    end
+  end
+
+  json.to_json
+end
