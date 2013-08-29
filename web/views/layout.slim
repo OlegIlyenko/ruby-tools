@@ -1,15 +1,15 @@
 doctype html
 
-html ng-app=""
+html ng-app="app"
   head
     title #{yield_content :title}
 
-    - ['assets/js/main.js', 'assets/js/util.js', 'js/jquery-2.0.3.js', 'js/angular.js', 'js/bootstrap.js'].each do |js|
+    - ['assets/js/util.js', 'js/jquery-2.0.3.js', 'js/angular.js', 'js/bootstrap.js', 'js/ng-table.js'].each do |js|
       script type="text/javascript" src=js
 
     == yield_content :head
 
-    - ['css/bootstrap.css', 'css/bootstrap-theme.css', 'assets/css/main.css'].each do |css|
+    - ['css/bootstrap.css', 'css/bootstrap-theme.css', 'assets/css/main.css', 'css/ng-table.css'].each do |css|
       link rel="stylesheet" type="text/css" href=css
   body
     header.navbar.navbar-default.navbar-fixed-top role="banner"

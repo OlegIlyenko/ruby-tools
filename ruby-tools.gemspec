@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.add_dependency "sinatra-contrib"
   s.add_dependency "sinatra-websocket"
   s.add_dependency "launchy"
-  s.add_dependency "trollop"
+  s.add_dependency "filewatch"
 
   s.has_rdoc    = false
 end

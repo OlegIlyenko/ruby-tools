@@ -1,6 +1,11 @@
 - content_for :title do
   |Show JSON
 
+- content_for :head do
+  span
+    - ['assets/js/file.js'].each do |js|
+      script type="text/javascript" src=js
+
 - content_for :description do
   markdown:
     Shows contents of the `#{json_file}`
@@ -9,4 +14,6 @@
   |Cool table
 
 .file ng-controller="FileCtrl" ng-init="init()"
-  |File!!! :)
+  table.table ng-table="contents"
+    tr ng-repeat="h in headers"
+        td data-title="'{{h}}'" sortable="{{h}}" {{h}}
